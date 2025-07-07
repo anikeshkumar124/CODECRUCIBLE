@@ -1,6 +1,7 @@
 'use client';
 
 import { codeQualityCheck, type CodeQualityCheckOutput } from '@/ai/flows/code-quality-check';
+import { executeCode } from '@/ai/flows/execute-code-flow';
 import { Icons } from '@/components/icons';
 import CodeEditorPanel from '@/components/code-crucible/CodeEditorPanel';
 import ResultsPanel from '@/components/code-crucible/ResultsPanel';
@@ -114,14 +115,21 @@ export default function CodeCruciblePage() {
     setIsLoadingRun(true);
     setOutput(null);
     try {
-      // Mock execution
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const startTime = performance.now();
+      const result = await executeCode({
+        code,
+        language,
+        input: customInput,
+      });
+      const endTime = performance.now();
+      const executionTime = ((endTime - startTime) / 1000).toFixed(2);
+      
       const newOutput: ExecutionOutput = {
         input: customInput,
-        stdout: `Hello, World!`,
-        stderr: '',
-        time: '0.12s',
-        memory: '8.45MB',
+        stdout: result.stdout,
+        stderr: result.stderr,
+        time: `${executionTime}s`,
+        memory: 'N/A',
       };
       setOutput(newOutput);
     } catch (error) {
@@ -130,7 +138,7 @@ export default function CodeCruciblePage() {
     } finally {
       setIsLoadingRun(false);
     }
-  }, [language, customInput, toast]);
+  }, [code, language, customInput, toast]);
 
   useEffect(() => {
     if (autoRun && isMounted) {
@@ -148,12 +156,21 @@ export default function CodeCruciblePage() {
     setIsLoadingSubmit(true);
     setTestResults([]);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const results: TestCaseResult[] = testCases.map(tc => ({
-        ...tc,
-        pass: Math.random() > 0.3,
-        actualOutput: `Hello, ${tc.input}`,
-      }));
+      const results: TestCaseResult[] = [];
+      for (const tc of testCases) {
+        const result = await executeCode({
+          code,
+          language,
+          input: tc.input,
+        });
+        const pass = result.stdout.trim() === tc.expectedOutput.trim() && !result.stderr;
+        results.push({
+          ...tc,
+          pass,
+          actualOutput: result.stdout || result.stderr,
+        });
+      }
+
       setTestResults(results);
       const passCount = results.filter(r => r.pass).length;
       toast({ title: 'Submission Complete', description: `${passCount}/${results.length} test cases passed.` });
