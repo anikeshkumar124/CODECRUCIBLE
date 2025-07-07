@@ -62,7 +62,7 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     for (int i = 0; i < nums.size(); ++i) {
         int complement = target - nums[i];
         // Check if the complement exists in the map
-        if (num_map.find(complement) != num_map.end()) {
+        if (num_map.count(complement)) {
             // Found it, return the indices
             return {num_map.at(complement), i};
         }
@@ -77,7 +77,7 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = JSON.parse({{{input}}});
+const [nums, target] = {{{input}}};
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `
@@ -86,8 +86,7 @@ import json
 
 {{{code}}}
 
-raw_input = json.loads({{{input}}})
-nums, target = raw_input
+nums, target = {{{input}}}
 result = two_sum(nums, target)
 result.sort()
 print(json.dumps(result))`,
