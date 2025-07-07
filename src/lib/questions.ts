@@ -55,38 +55,45 @@ You can return the answer in any order.
 var twoSum = function(nums, target) {
     
 };`,
-      python: `class Solution:
+      python: `from typing import List
+
+class Solution:
     def twoSum(self, nums: List[int], target: int) -> List[int]:
         `,
       cpp: `#include <vector>
 #include <unordered_map>
 
-// O(n) time, O(n) space
-std::vector<int> twoSum(std::vector<int>& nums, int target) {
-    std::unordered_map<int, int> num_map;
-    for (int i = 0; i < nums.size(); ++i) {
-        int complement = target - nums[i];
-        if (num_map.count(complement)) {
-            return {num_map.at(complement), i};
+class Solution {
+public:
+    std::vector<int> twoSum(std::vector<int>& nums, int target) {
+        std::unordered_map<int, int> num_map;
+        for (int i = 0; i < nums.size(); ++i) {
+            int complement = target - nums[i];
+            auto it = num_map.find(complement);
+            if (it != num_map.end()) {
+                return {it->second, i};
+            }
+            num_map[nums[i]] = i;
         }
-        num_map[nums[i]] = i;
+        return {};
     }
-    return {};
 };`,
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = {{{input}}};
+const input = {{{input}}};
+const [nums, target] = input;
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
-        python: `
-import sys
+        python: `import sys
 import json
+from typing import List
 
 {{{code}}}
 
+s = Solution()
 nums, target = {{{input}}}
-result = two_sum(nums, target)
+result = s.twoSum(nums, target)
 result.sort()
 print(json.dumps(result))`,
         cpp: `#include <iostream>
@@ -95,9 +102,7 @@ print(json.dumps(result))`,
 #include <sstream>
 #include <algorithm>
 #include <iterator>
-
-// Forward declaration of the user's function
-std::vector<int> twoSum(std::vector<int>& nums, int target);
+#include <unordered_map>
 
 {{{code}}}
 
@@ -140,7 +145,8 @@ int main() {
     all_numbers.pop_back();
     std::vector<int> nums = all_numbers;
     
-    std::vector<int> result = twoSum(nums, target);
+    Solution s;
+    std::vector<int> result = s.twoSum(nums, target);
     std::sort(result.begin(), result.end());
     printVector(result);
     
@@ -194,16 +200,20 @@ var isValid = function(s) {
       cpp: `#include <string>
 #include <stack>
 
-bool isValid(std::string s) {
-  // Your code here
-}`,
+class Solution {
+public:
+    bool isValid(std::string s) {
+      // Your code here
+    }
+};`,
     },
     driverCode: {
         javascript: `{{{code}}}
 const result = isValid({{{input}}});
 console.log(JSON.stringify(result));`,
         python: `{{{code}}}
-result = is_valid({{{input}}})
+s = Solution()
+result = s.isValid({{{input}}})
 print(str(result).lower())`,
         cpp: `#include <iostream>
 #include <string>
@@ -213,8 +223,9 @@ print(str(result).lower())`,
 {{{code}}}
 
 int main() {
-    std::string s = {{{input}}};
-    if (isValid(s)) {
+    std::string s_input = {{{input}}};
+    Solution s;
+    if (s.isValid(s_input)) {
         std::cout << "true";
     } else {
         std::cout << "false";
