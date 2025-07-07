@@ -33,6 +33,9 @@ const executeCodePrompt = ai.definePrompt({
   output: {schema: ExecuteCodeOutputSchema},
   prompt: `You are a code execution engine. You will be given a piece of code in a specific language and optional standard input. Your task is to execute the code and provide the standard output (stdout) and standard error (stderr).
 
+You must act as a realistic compiler and runtime for the given language. This includes checking for common errors like missing imports or headers.
+For example, if you are given C++ code that uses \`std::cout\` or \`std::cin\` without \`#include <iostream>\`, you MUST produce a compilation error in \`stderr\` and leave \`stdout\` empty. A suitable error would be \`error: 'std::cout' was not declared in this scope\`.
+
 If the code runs successfully, provide the output in the stdout field. The stderr field should be empty.
 If the code has any compilation or runtime errors, provide the error message in the stderr field. The stdout field should be empty.
 Do not provide any explanation, just the raw output.
