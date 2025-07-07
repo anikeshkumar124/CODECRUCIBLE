@@ -96,7 +96,7 @@ export default function QuestionPage() {
         displayInput = question.testCases[0].input;
       } else {
         displayInput = customInput;
-        inputForDriver = JSON.stringify(customInput);
+        inputForDriver = customInput;
       }
 
       let fullCode: string;
@@ -210,6 +210,9 @@ export default function QuestionPage() {
           pass,
           actualOutput: result.stdout || result.stderr,
         });
+
+        // Add a small delay to avoid hitting API rate limits
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
       setTestResults(results);
