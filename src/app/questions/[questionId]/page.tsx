@@ -144,17 +144,26 @@ export default function QuestionPage() {
       setOutput(newOutput);
       setTestResults([]);
       setQualitySuggestions([]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      let title = 'Execution Error';
+      let description = 'An unexpected error occurred while running your code.';
+
+      if (error.message && error.message.includes('429')) {
+        title = 'API Rate Limit Exceeded';
+        description =
+          'You have made too many requests and may have exceeded your daily quota. Please wait a moment or try again later.';
+      }
+
       toast({
         variant: 'destructive',
-        title: 'Execution Rate Limit Exceeded',
-        description: 'You have made too many requests. Please wait a moment before trying again.',
+        title: title,
+        description: description,
       });
       setOutput({
         input: customInput,
         stdout: '',
-        stderr: 'API rate limit exceeded. Please wait and try again.',
+        stderr: description,
         time: '0s',
       });
     } finally {
@@ -228,8 +237,17 @@ export default function QuestionPage() {
         });
         setQualitySuggestions(qualityResult);
       }
-    } catch (error) {
-      toast({ variant: 'destructive', title: 'Submission Error', description: 'Could not run test cases.' });
+    } catch (error: any) {
+      console.error(error);
+      let title = 'Submission Error';
+      let description = 'Could not run test cases due to an unexpected error.';
+
+      if (error.message && error.message.includes('429')) {
+        title = 'API Rate Limit Exceeded';
+        description =
+          'Submission failed because you may have exceeded your daily request quota. Please try again later.';
+      }
+      toast({ variant: 'destructive', title: title, description: description });
     } finally {
       setIsLoadingSubmit(false);
     }
