@@ -1,33 +1,39 @@
 
 'use client';
 
-import type { ExecutionOutput, TestCaseResult } from '@/app/questions/[questionId]/page';
+import type { ExecutionOutput, QualitySuggestion, TestCaseResult } from '@/app/questions/[questionId]/page';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Icons } from '../icons';
+import QualityReportPanel from './QualityReportPanel';
 
 type ResultsPanelProps = {
   output: ExecutionOutput | null;
   testResults: TestCaseResult[];
+  qualitySuggestions: QualitySuggestion[];
   isLoading: boolean;
 };
 
 const ResultsPanel: React.FC<ResultsPanelProps> = ({
   output,
   testResults,
+  qualitySuggestions,
   isLoading,
 }) => {
   const hasTestResults = testResults.length > 0;
-  const activeTab = output ? "output" : hasTestResults ? "test-cases" : "output";
+  const hasQualitySuggestions = qualitySuggestions.length > 0;
+  
+  const activeTab = output ? 'output' : hasTestResults ? 'test-cases' : hasQualitySuggestions ? 'quality-report' : 'output';
 
   return (
     <Tabs defaultValue={activeTab} key={activeTab} className="h-full flex flex-col">
       <div className="p-4 pb-0">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="output">Run Output</TabsTrigger>
           <TabsTrigger value="test-cases">Submission Results</TabsTrigger>
+          <TabsTrigger value="quality-report">Quality Report</TabsTrigger>
         </TabsList>
       </div>
 
@@ -118,6 +124,18 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({
                 ))}
             </div>
            )}
+        </TabsContent>
+        <TabsContent value="quality-report" className="mt-0">
+            {!isLoading && !hasQualitySuggestions && (
+                 <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
+                    <Icons.sparkles className="h-12 w-12 mb-4" />
+                    <p className="font-semibold">Submit your code to get an AI quality report</p>
+                    <p className="text-sm">Suggestions for improvement will appear here after a successful submission.</p>
+                </div>
+            )}
+            {hasQualitySuggestions && (
+                <QualityReportPanel suggestions={qualitySuggestions} />
+            )}
         </TabsContent>
       </div>
     </Tabs>

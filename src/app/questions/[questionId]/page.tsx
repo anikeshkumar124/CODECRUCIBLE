@@ -1,17 +1,20 @@
 
 'use client';
 
+import { codeQualityCheck } from '@/ai/flows/code-quality-check';
 import { executeCode } from '@/ai/flows/execute-code-flow';
-import { Icons } from '@/components/icons';
 import CodeEditorPanel from '@/components/code-crucible/CodeEditorPanel';
+import QualityReportPanel from '@/components/code-crucible/QualityReportPanel';
 import ResultsPanel from '@/components/code-crucible/ResultsPanel';
+import { Icons } from '@/components/icons';
 import ProblemDescriptionPanel from '@/components/ProblemDescriptionPanel';
-import { useToast } from '@/hooks/use-toast';
-import { questions, type Language, type Question, type TestCase } from '@/lib/questions';
-import { notFound, useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { questions, type Language, type Question, type TestCase } from '@/lib/questions';
+import { debounce } from '@/lib/utils';
+import { notFound, useParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export type ExecutionOutput = {
   input?: string;
@@ -25,59 +28,66 @@ export type TestCaseResult = TestCase & {
   actualOutput: string;
 };
 
+export type QualitySuggestion = {
+  suggestion: string;
+  rationale: string;
+};
+
 export default function QuestionPage() {
   const params = useParams<{ questionId: string }>();
   const [isMounted, setIsMounted] = useState(false);
-  
+
   const question = questions.find(q => q.id === params.questionId);
-  
+
   const [code, setCode] = useState<string>('');
   const [language, setLanguage] = useState<Language>('javascript');
   const [customInput, setCustomInput] = useState<string>('');
-  
+
   const [output, setOutput] = useState<ExecutionOutput | null>(null);
   const [testResults, setTestResults] = useState<TestCaseResult[]>([]);
+  const [qualitySuggestions, setQualitySuggestions] = useState<QualitySuggestion[]>([]);
 
   const [isLoadingRun, setIsLoadingRun] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
-  
+
   const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
     if (question) {
-        // Load saved state from local storage
-        try {
-          const savedState = localStorage.getItem(`codeCrucible-${question.id}`);
-          if (savedState) {
-            const { code: savedCode, language: savedLang } = JSON.parse(savedState);
-            if (savedCode) setCode(savedCode);
-            if (savedLang) setLanguage(savedLang);
-          } else {
-            // Or set boilerplate
-            setCode(question.boilerplate[language]);
-          }
-        } catch (error) {
-          console.error('Failed to load state from localStorage', error);
+      // Load saved state from local storage
+      try {
+        const savedState = localStorage.getItem(`codeCrucible-${question.id}`);
+        if (savedState) {
+          const { code: savedCode, language: savedLang } = JSON.parse(savedState);
+          if (savedCode) setCode(savedCode);
+          if (savedLang) setLanguage(savedLang);
+        } else {
+          // Or set boilerplate
           setCode(question.boilerplate[language]);
         }
+      } catch (error) {
+        console.error('Failed to load state from localStorage', error);
+        setCode(question.boilerplate[language]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [question?.id]);
-  
+
   useEffect(() => {
     if (isMounted && question) {
       const stateToSave = JSON.stringify({ code, language });
       localStorage.setItem(`codeCrucible-${question.id}`, stateToSave);
     }
   }, [code, language, isMounted, question]);
-  
+
   const handleLanguageChange = (newLang: Language) => {
     if (question) {
       setLanguage(newLang);
       setCode(question.boilerplate[newLang]);
       setOutput(null);
       setTestResults([]);
+      setQualitySuggestions([]);
     }
   };
 
@@ -85,32 +95,34 @@ export default function QuestionPage() {
     notFound();
   }
 
-  const handleRunCode = useCallback(async () => {
-    if (!question) return;
+  const executeRun = useCallback(async () => {
+    if (!question) {
+      setIsLoadingRun(false);
+      return;
+    }
 
-    setIsLoadingRun(true);
-    setOutput(null);
     try {
       const startTime = performance.now();
-      
-      let inputForDriver: string;
+
       const useDefaultInput = !customInput && question.testCases.length > 0;
+      let inputForDriver: string;
+      let displayInput: string;
 
       if (useDefaultInput) {
         inputForDriver = question.testCases[0].input;
+        displayInput = question.testCases[0].input;
       } else {
+        displayInput = customInput;
         if (question.id === 'valid-parentheses') {
-            inputForDriver = JSON.stringify(customInput);
+          inputForDriver = JSON.stringify(customInput);
         } else if (question.id === 'two-sum') {
-            // Wrap custom input to form a valid JSON array: e.g., '[2,7],9' -> '[[2,7],9]'
-            inputForDriver = `[${customInput}]`;
+          inputForDriver = `[${customInput}]`;
         } else {
-            inputForDriver = customInput;
+          inputForDriver = customInput;
         }
       }
 
       let fullCode: string;
-
       if (language === 'cpp' && question.id === 'two-sum') {
         const parsedInput = JSON.parse(inputForDriver);
         const nums = parsedInput[0];
@@ -134,29 +146,50 @@ export default function QuestionPage() {
       });
       const endTime = performance.now();
       const executionTime = ((endTime - startTime) / 1000).toFixed(2);
-      
+
       const newOutput: ExecutionOutput = {
-        input: customInput || (question.testCases[0] ? JSON.parse(question.testCases[0].input) : ''),
+        input: displayInput,
         stdout: result.stdout,
         stderr: result.stderr,
         time: `${executionTime}s`,
       };
       setOutput(newOutput);
-      setTestResults([]); // Clear test results when running with custom input
+      setTestResults([]);
+      setQualitySuggestions([]);
     } catch (error) {
-      console.error(error)
-      toast({ variant: 'destructive', title: 'Execution Error', description: 'Something went wrong.' });
-      setOutput({ input: customInput, stdout: '', stderr: 'An unexpected error occurred.', time: '0s' });
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Execution Rate Limit Exceeded',
+        description: 'You have made too many requests. Please wait a moment before trying again.',
+      });
+      setOutput({
+        input: customInput,
+        stdout: '',
+        stderr: 'API rate limit exceeded. Please wait and try again.',
+        time: '0s',
+      });
     } finally {
       setIsLoadingRun(false);
     }
   }, [code, language, customInput, toast, question]);
+
+  const debouncedRunCode = useMemo(() => debounce(executeRun, 800), [executeRun]);
+
+  const handleRunCode = useCallback(() => {
+    setIsLoadingRun(true);
+    setOutput(null);
+    setTestResults([]);
+    setQualitySuggestions([]);
+    debouncedRunCode();
+  }, [debouncedRunCode]);
 
   const handleSubmitCode = async () => {
     if (!question) return;
     setIsLoadingSubmit(true);
     setTestResults([]);
     setOutput(null);
+    setQualitySuggestions([]);
 
     try {
       const results: TestCaseResult[] = [];
@@ -174,9 +207,7 @@ export default function QuestionPage() {
             .replace('{{{nums_vector}}}', nums_vector)
             .replace('{{{target_value}}}', target_value);
         } else {
-          fullCode = question.driverCode[language]
-            .replace('{{{code}}}', code)
-            .replace('{{{input}}}', tc.input);
+          fullCode = question.driverCode[language].replace('{{{code}}}', code).replace('{{{input}}}', tc.input);
         }
 
         const result = await executeCode({
@@ -196,6 +227,16 @@ export default function QuestionPage() {
       setTestResults(results);
       const passCount = results.filter(r => r.pass).length;
       toast({ title: 'Submission Complete', description: `${passCount}/${results.length} test cases passed.` });
+
+      if (passCount === results.length) {
+        const qualityResult = await codeQualityCheck({
+          code,
+          language,
+          problemStatement: question.description,
+          testCaseCoverageInfo: 'All test cases passed.',
+        });
+        setQualitySuggestions(qualityResult);
+      }
     } catch (error) {
       toast({ variant: 'destructive', title: 'Submission Error', description: 'Could not run test cases.' });
     } finally {
@@ -220,7 +261,6 @@ export default function QuestionPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleRunCode, handleSubmitCode]);
 
-
   if (!isMounted || !question) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
@@ -235,15 +275,17 @@ export default function QuestionPage() {
         <div className="flex-1 lg:w-3/5 flex flex-col gap-4">
           <ProblemDescriptionPanel question={question} />
           <Card>
-            <CardHeader><CardTitle className="text-lg">Custom Input</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Custom Input</CardTitle>
+            </CardHeader>
             <CardContent>
               <Textarea
-                  value={customInput}
-                  onChange={(e) => setCustomInput(e.target.value)}
-                  placeholder="Enter custom input for 'Run' action. If empty, first sample case will be used."
-                  className="font-code h-24 bg-card"
-                  aria-label="Custom Input"
-                />
+                value={customInput}
+                onChange={e => setCustomInput(e.target.value)}
+                placeholder="Enter custom input for 'Run' action. If empty, first sample case will be used."
+                className="font-code h-24 bg-card"
+                aria-label="Custom Input"
+              />
             </CardContent>
           </Card>
         </div>
@@ -263,6 +305,7 @@ export default function QuestionPage() {
               output={output}
               testResults={testResults}
               isLoading={isLoadingRun || isLoadingSubmit}
+              qualitySuggestions={qualitySuggestions}
             />
           </Card>
         </div>
