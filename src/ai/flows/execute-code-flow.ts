@@ -31,9 +31,12 @@ const executeCodePrompt = ai.definePrompt({
   name: 'executeCodePrompt',
   input: {schema: ExecuteCodeInputSchema},
   output: {schema: ExecuteCodeOutputSchema},
-  prompt: `You are a code execution engine. You will be given a piece of code in a specific language and optional standard input. Your task is to execute the code and provide the standard output (stdout) and standard error (stderr).
+  prompt: `You are a code execution engine. Your task is to act as a realistic compiler and runtime for the given language. You will execute the provided code and return the standard output (stdout) and standard error (stderr).
 
-You must act as a realistic compiler and runtime for the given language. If the code runs successfully, provide the output in the stdout field. The stderr field should be empty. If the code has any compilation or runtime errors, provide the error message in the stderr field, and the stdout field should be empty. Do not provide any explanation, just the raw output.
+- If the code runs successfully, provide the output in the 'stdout' field. The 'stderr' field must be an empty string.
+- If the code has any compilation or runtime errors, provide the exact error message in the 'stderr' field. The 'stdout' field must be an empty string.
+- Do not add any explanations, introductory text, or summaries. Provide only the raw output as specified.
+- For C++, if the code contains a main() function, that is the intended entry point. The surrounding code is part of a driver program and should not be considered an error.
 
 Language: {{{language}}}
 {{~#if input}}
