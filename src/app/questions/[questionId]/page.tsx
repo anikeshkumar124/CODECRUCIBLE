@@ -136,7 +136,7 @@ export default function QuestionPage() {
       const executionTime = ((endTime - startTime) / 1000).toFixed(2);
       
       const newOutput: ExecutionOutput = {
-        input: customInput || question.testCases[0].input,
+        input: customInput || (question.testCases[0] ? JSON.parse(question.testCases[0].input) : ''),
         stdout: result.stdout,
         stderr: result.stderr,
         time: `${executionTime}s`,
@@ -144,6 +144,7 @@ export default function QuestionPage() {
       setOutput(newOutput);
       setTestResults([]); // Clear test results when running with custom input
     } catch (error) {
+      console.error(error)
       toast({ variant: 'destructive', title: 'Execution Error', description: 'Something went wrong.' });
       setOutput({ input: customInput, stdout: '', stderr: 'An unexpected error occurred.', time: '0s' });
     } finally {

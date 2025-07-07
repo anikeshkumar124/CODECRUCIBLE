@@ -80,8 +80,8 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const parsedInput = JSON.parse({{{input}}});
-const result = twoSum(parsedInput[0], parsedInput[1]);
+const [nums, target] = JSON.parse({{{input}}});
+const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `import json
 {{{code}}}
@@ -117,11 +117,11 @@ int main() {
 }`,
     },
     testCases: [
-        { id: 1, name: 'Sample Case 1', input: '[[2,7,11,15], 9]', expectedOutput: '[0,1]', hidden: false },
-        { id: 2, name: 'Sample Case 2', input: '[[3,2,4], 6]', expectedOutput: '[1,2]', hidden: false },
-        { id: 3, name: 'Edge Case with Negatives', input: '[[-1,-2,-3,-4,-5], -8]', expectedOutput: '[2,4]', hidden: true },
-        { id: 4, name: 'Large Numbers', input: '[[1000000000, 2, 7, 100], 1000000007]', expectedOutput: '[0,2]', hidden: true},
-        { id: 5, name: 'Zeroes', input: '[[0,4,3,0], 0]', expectedOutput: '[0,3]', hidden: true },
+        { id: 1, name: 'Sample Case 1', input: '[[2,7,11,15],9]', expectedOutput: '[0,1]', hidden: false },
+        { id: 2, name: 'Sample Case 2', input: '[[3,2,4],6]', expectedOutput: '[1,2]', hidden: false },
+        { id: 3, name: 'Edge Case with Negatives', input: '[[-1,-2,-3,-4,-5],-8]', expectedOutput: '[2,4]', hidden: true },
+        { id: 4, name: 'Large Numbers', input: '[[1000000000,2,7,100],1000000007]', expectedOutput: '[0,2]', hidden: true},
+        { id: 5, name: 'Zeroes', input: '[[0,4,3,0],0]', expectedOutput: '[0,3]', hidden: true },
     ]
   },
   {
@@ -172,7 +172,7 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const result = isValid(JSON.parse({{{input}}}));
+const result = isValid(JSON.parse(\`{{{input}}}\`));
 console.log(JSON.stringify(result));`,
         python: `import json
 {{{code}}}
