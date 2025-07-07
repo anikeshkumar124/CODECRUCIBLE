@@ -66,13 +66,13 @@ class Solution:
 class Solution {
 public:
     std::vector<int> twoSum(std::vector<int>& nums, int target) {
-        std::unordered_map<int, int> num_map;
+        std::unordered_map<int, int> num_to_index;
         for (int i = 0; i < nums.size(); ++i) {
             int complement = target - nums[i];
-            if (num_map.count(complement)) {
-                return {num_map[complement], i};
+            if (num_to_index.count(complement)) {
+                return {num_to_index[complement], i};
             }
-            num_map[nums[i]] = i;
+            num_to_index[nums[i]] = i;
         }
         return {};
     }
@@ -80,7 +80,8 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const result = twoSum({{{input}}});
+const parsedInput = JSON.parse({{{input}}});
+const result = twoSum(parsedInput[0], parsedInput[1]);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `import json
 {{{code}}}
@@ -90,23 +91,10 @@ result.sort()
 print(json.dumps(result))`,
         cpp: `#include <iostream>
 #include <vector>
-#include <string>
 #include <algorithm>
-#include <iterator>
 #include <unordered_map>
 
 {{{code}}}
-
-void printVector(const std::vector<int>& vec) {
-    std::cout << "[";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        std::cout << vec[i];
-        if (i < vec.size() - 1) {
-            std::cout << ",";
-        }
-    }
-    std::cout << "]";
-}
 
 int main() {
     std::vector<int> nums = {{{nums_vector}}};
@@ -115,7 +103,15 @@ int main() {
     Solution s;
     std::vector<int> result = s.twoSum(nums, target);
     std::sort(result.begin(), result.end());
-    printVector(result);
+    
+    std::cout << "[";
+    for (size_t i = 0; i < result.size(); ++i) {
+        std::cout << result[i];
+        if (i < result.size() - 1) {
+            std::cout << ",";
+        }
+    }
+    std::cout << "]";
     
     return 0;
 }`,
@@ -176,11 +172,12 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const result = isValid({{{input}}});
+const result = isValid(JSON.parse({{{input}}}));
 console.log(JSON.stringify(result));`,
-        python: `{{{code}}}
+        python: `import json
+{{{code}}}
 s = Solution()
-result = s.isValid({{{input}}})
+result = s.isValid(json.loads({{{input}}}))
 print(str(result).lower())`,
         cpp: `#include <iostream>
 #include <string>
