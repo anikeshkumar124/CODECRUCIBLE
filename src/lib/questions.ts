@@ -230,11 +230,8 @@ bool isValid(std::string s) {
         javascript: `{{{code}}}
 const result = isValid({{{input}}});
 console.log(JSON.stringify(result));`,
-        python: `
-import json
-{{{code}}}
-
-result = is_valid(json.loads('{{{input}}}'))
+        python: `{{{code}}}
+result = is_valid({{{input}}})
 print(str(result).lower())`,
         cpp: `#include <iostream>
 #include <string>
