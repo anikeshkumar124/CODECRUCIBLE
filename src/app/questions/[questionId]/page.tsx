@@ -62,7 +62,8 @@ export default function QuestionPage() {
           setCode(question.boilerplate[language]);
         }
     }
-  }, [question, language]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question]);
   
   useEffect(() => {
     if (isMounted && question) {
