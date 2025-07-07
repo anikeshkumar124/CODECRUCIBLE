@@ -63,7 +63,7 @@ export default function QuestionPage() {
         }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question]);
+  }, [question?.id]);
   
   useEffect(() => {
     if (isMounted && question) {
@@ -92,9 +92,26 @@ export default function QuestionPage() {
     setOutput(null);
     try {
       const startTime = performance.now();
+      
+      let inputForDriver: string;
+      const useDefaultInput = !customInput && question.testCases.length > 0;
+
+      if (useDefaultInput) {
+        inputForDriver = question.testCases[0].input;
+      } else {
+        // For problems expecting a string literal, we need to format it correctly.
+        if (question.id === 'valid-parentheses') {
+            // User types (), but driver needs "()". JSON.stringify handles this.
+            inputForDriver = JSON.stringify(customInput);
+        } else {
+            // For 'two-sum', driver wraps input in quotes, so we pass raw value.
+            inputForDriver = customInput;
+        }
+      }
+
       const fullCode = question.driverCode[language]
         .replace('{{{code}}}', code)
-        .replace('{{{input}}}', customInput || question.testCases[0].input);
+        .replace('{{{input}}}', inputForDriver);
 
       const result = await executeCode({
         code: fullCode,
