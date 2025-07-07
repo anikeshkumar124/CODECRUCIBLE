@@ -3,10 +3,10 @@ export type Language = 'javascript' | 'python' | 'cpp';
 
 export interface TestCase {
   id: number;
+  name: string;
   input: string;
   expectedOutput: string;
   hidden: boolean;
-  name: string;
 }
 
 export interface Question {
@@ -47,12 +47,17 @@ You can return the answer in any order.
 </pre>
     `,
     boilerplate: {
-      javascript: `function twoSum(nums, target) {
-  // Your code here
+      javascript: `/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number[]}
+ */
+var twoSum = function(nums, target) {
+    
 };`,
-      python: `def two_sum(nums, target):
-  # Your code here
-  pass`,
+      python: `class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        `,
       cpp: `#include <vector>
 #include <unordered_map>
 
@@ -61,19 +66,13 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     std::unordered_map<int, int> num_map;
     for (int i = 0; i < nums.size(); ++i) {
         int complement = target - nums[i];
-        // Check if the complement exists in the map
         if (num_map.count(complement)) {
-            // Found it, return the indices
             return {num_map.at(complement), i};
         }
-        // Add the current number and its index to the map.
-        // This ensures we don't use the same element twice and stores the first occurrence.
         num_map[nums[i]] = i;
     }
-    // As per problem statement, a solution always exists.
-    // This line should not be reached.
     return {};
-}`,
+};`,
     },
     driverCode: {
         javascript: `{{{code}}}
@@ -96,7 +95,6 @@ print(json.dumps(result))`,
 #include <sstream>
 #include <algorithm>
 #include <iterator>
-#include <stdexcept>
 
 // Forward declaration of the user's function
 std::vector<int> twoSum(std::vector<int>& nums, int target);
@@ -112,37 +110,6 @@ void printVector(const std::vector<int>& vec) {
         }
     }
     std::cout << "]";
-}
-
-// Validation function
-void validateAndPrint(const std::vector<int>& nums, int target, const std::vector<int>& result) {
-    if (result.size() != 2) {
-        std::cout << "FAIL: Expected a vector with 2 indices, but got " << result.size() << ".";
-        return;
-    }
-
-    int i1 = result[0];
-    int i2 = result[1];
-
-    if (i1 == i2) {
-        std::cout << "FAIL: Indices must be distinct, but got two of the same: " << i1 << ".";
-        return;
-    }
-    
-    if (i1 < 0 || i1 >= nums.size() || i2 < 0 || i2 >= nums.size()) {
-        std::cout << "FAIL: Indices are out of bounds. Got " << i1 << " and " << i2 << ", but array size is " << nums.size() << ".";
-        return;
-    }
-    
-    if (nums[i1] + nums[i2] != target) {
-        std::cout << "FAIL: The sum of elements at indices " << i1 << " and " << i2 << " (" << nums[i1] << " + " << nums[i2] << " = " << nums[i1] + nums[i2] << ") does not equal the target (" << target << ").";
-        return;
-    }
-
-    // If all checks pass, print the sorted result
-    std::vector<int> sorted_result = result;
-    std::sort(sorted_result.begin(), sorted_result.end());
-    printVector(sorted_result);
 }
 
 int main() {
@@ -165,22 +132,17 @@ int main() {
     }
     
     if (all_numbers.empty()) {
-        std::cerr << "Error: Input is empty or invalid.";
-        return 1;
+        printVector({});
+        return 0;
     }
 
     int target = all_numbers.back();
     all_numbers.pop_back();
     std::vector<int> nums = all_numbers;
     
-    try {
-        std::vector<int> result = twoSum(nums, target);
-        validateAndPrint(nums, target, result);
-    } catch (const std::exception& e) {
-        std::cout << "FAIL: An exception occurred during execution: " << e.what();
-    } catch (...) {
-        std::cout << "FAIL: An unknown exception occurred during execution.";
-    }
+    std::vector<int> result = twoSum(nums, target);
+    std::sort(result.begin(), result.end());
+    printVector(result);
     
     return 0;
 }`,
@@ -219,12 +181,16 @@ An input string is valid if:
 </pre>
     `,
     boilerplate: {
-      javascript: `function isValid(s) {
-  // Your code here
+      javascript: `/**
+ * @param {string} s
+ * @return {boolean}
+ */
+var isValid = function(s) {
+    
 };`,
-      python: `def is_valid(s):
-  # Your code here
-  pass`,
+      python: `class Solution:
+    def isValid(self, s: str) -> bool:
+        `,
       cpp: `#include <string>
 #include <stack>
 
