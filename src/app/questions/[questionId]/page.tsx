@@ -8,7 +8,7 @@ import ResultsPanel from '@/components/code-crucible/ResultsPanel';
 import ProblemDescriptionPanel from '@/components/ProblemDescriptionPanel';
 import { useToast } from '@/hooks/use-toast';
 import { questions, type Language, type Question, type TestCase } from '@/lib/questions';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,7 +25,8 @@ export type TestCaseResult = TestCase & {
   actualOutput: string;
 };
 
-export default function QuestionPage({ params }: { params: { questionId: string } }) {
+export default function QuestionPage() {
+  const params = useParams<{ questionId: string }>();
   const [isMounted, setIsMounted] = useState(false);
   
   const question = questions.find(q => q.id === params.questionId);
