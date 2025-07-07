@@ -81,8 +81,7 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const input = {{{input}}};
-const [nums, target] = input;
+const [nums, target] = {{{input}}};
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `import sys
