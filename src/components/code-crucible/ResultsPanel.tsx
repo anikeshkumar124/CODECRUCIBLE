@@ -4,11 +4,10 @@ import type { ExecutionOutput, TestCaseResult } from '@/app/page';
 import type { CodeQualityCheckOutput } from '@/ai/flows/code-quality-check';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Icons } from '../icons';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 type ResultsPanelProps = {
   output: ExecutionOutput | null;
@@ -58,22 +57,40 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({
             </div>
           ) : (
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
-                <CardTitle className="text-sm font-medium">Execution Details</CardTitle>
-                <div className="flex gap-4 text-sm">
-                  <span>Time: <span className="font-mono">{output.time}</span></span>
-                  <span>Memory: <span className="font-mono">{output.memory}</span></span>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div>
-                  <h3 className="font-semibold mb-2">Stdout:</h3>
-                  <pre className="bg-muted p-3 rounded-md text-sm font-code whitespace-pre-wrap">{output.stdout || 'No standard output.'}</pre>
-                </div>
-                {output.stderr && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold mb-2 text-destructive">Stderr:</h3>
-                    <pre className="bg-destructive/10 text-destructive p-3 rounded-md text-sm font-code whitespace-pre-wrap">{output.stderr}</pre>
+              <CardContent className="p-4 text-sm">
+                {output.stderr ? (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold flex items-center gap-2 text-lg text-destructive">
+                      🔴 Compilation/Error Output
+                    </h3>
+                    <div>
+                      <p className="font-semibold mb-1">💥 Error:</p>
+                      <pre className="font-code bg-destructive/10 text-destructive p-3 rounded-md whitespace-pre-wrap">
+                        {output.stderr}
+                      </pre>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold flex items-center gap-2 text-lg text-green-600">
+                      🟢 Execution Result
+                    </h3>
+                    
+                    {output.input && (
+                      <div>
+                        <p className="font-semibold mb-1">📥 Input:</p>
+                        <pre className="font-code bg-muted p-3 rounded-md whitespace-pre-wrap">{output.input}</pre>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <p className="font-semibold mb-1">📤 Output:</p>
+                      <pre className="font-code bg-muted p-3 rounded-md whitespace-pre-wrap">
+                        {output.stdout || 'No output returned.'}
+                      </pre>
+                    </div>
+                    
+                    <p className="font-semibold">⏱️ Execution Time: {output.time || 'N/A'}</p>
                   </div>
                 )}
               </CardContent>

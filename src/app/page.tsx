@@ -35,6 +35,7 @@ int main() {
 export type Language = keyof typeof defaultCode;
 
 export type ExecutionOutput = {
+  input?: string;
   stdout: string;
   stderr: string;
   time: string;
@@ -116,7 +117,8 @@ export default function CodeCruciblePage() {
       // Mock execution
       await new Promise(resolve => setTimeout(resolve, 800));
       const newOutput: ExecutionOutput = {
-        stdout: `Executing ${language} code...\nInput: ${customInput || 'none'}\n\nHello, World!`,
+        input: customInput,
+        stdout: `Hello, World!`,
         stderr: '',
         time: '0.12s',
         memory: '8.45MB',
@@ -124,7 +126,7 @@ export default function CodeCruciblePage() {
       setOutput(newOutput);
     } catch (error) {
       toast({ variant: 'destructive', title: 'Execution Error', description: 'Something went wrong.' });
-      setOutput({ stdout: '', stderr: 'An unexpected error occurred.', time: '0s', memory: '0MB' });
+      setOutput({ input: customInput, stdout: '', stderr: 'An unexpected error occurred.', time: '0s', memory: '0MB' });
     } finally {
       setIsLoadingRun(false);
     }
