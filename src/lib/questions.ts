@@ -80,18 +80,12 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = JSON.parse({{{input}}});
-const result = twoSum(nums, target);
+const result = twoSum({{{input}}});
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
-        python: `import sys
-import json
-from typing import List
-
+        python: `import json
 {{{code}}}
-
 s = Solution()
-nums, target = json.loads({{{input}}})
-result = s.twoSum(nums, target)
+result = s.twoSum(*json.loads({{{input}}}))
 result.sort()
 print(json.dumps(result))`,
         cpp: `#include <iostream>
