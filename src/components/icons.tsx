@@ -1,3 +1,4 @@
+
 import {
   Play,
   Upload,
@@ -9,6 +10,7 @@ import {
   Loader2,
   FileJson,
   BrainCircuit,
+  Tag,
   type LucideProps,
 } from 'lucide-react';
 
@@ -22,6 +24,7 @@ export const Icons = {
   sparkles: Sparkles,
   fileJson: FileJson,
   brain: BrainCircuit,
+  tag: Tag,
   spinner: (props: LucideProps) => (
     <Loader2 className="animate-spin" {...props} />
   ),

@@ -1,8 +1,7 @@
+
 'use client';
 
-import type { ExecutionOutput, TestCaseResult } from '@/app/page';
-import type { CodeQualityCheckOutput } from '@/ai/flows/code-quality-check';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import type { ExecutionOutput, TestCaseResult } from '@/app/questions/[questionId]/page';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,63 +11,52 @@ import { Icons } from '../icons';
 type ResultsPanelProps = {
   output: ExecutionOutput | null;
   testResults: TestCaseResult[];
-  qualitySuggestions: CodeQualityCheckOutput;
   isLoading: boolean;
 };
 
 const ResultsPanel: React.FC<ResultsPanelProps> = ({
   output,
   testResults,
-  qualitySuggestions,
   isLoading,
 }) => {
   const hasTestResults = testResults.length > 0;
-  const hasSuggestions = qualitySuggestions.length > 0;
+  const activeTab = output ? "output" : hasTestResults ? "test-cases" : "output";
 
   return (
-    <Tabs defaultValue="output" className="h-full flex flex-col">
+    <Tabs defaultValue={activeTab} key={activeTab} className="h-full flex flex-col">
       <div className="p-4 pb-0">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="output">Output</TabsTrigger>
-          <TabsTrigger value="test-cases" disabled={!hasTestResults}>
-            Test Cases
-            {hasTestResults && <Badge variant="secondary" className="ml-2">{testResults.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="quality" disabled={!hasSuggestions}>
-            Code Quality
-            {hasSuggestions && <Badge variant="secondary" className="ml-2">{qualitySuggestions.length}</Badge>}
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="output">Run Output</TabsTrigger>
+          <TabsTrigger value="test-cases">Submission Results</TabsTrigger>
         </TabsList>
       </div>
 
       <div className="flex-grow p-4 overflow-auto">
-        {isLoading && !output && !hasTestResults && !hasSuggestions && (
+        {isLoading && (
           <div className="flex h-full items-center justify-center">
             <Icons.spinner className="h-8 w-8" />
           </div>
         )}
 
-        <TabsContent value="output" className="h-full">
-          {!output ? (
+        <TabsContent value="output" className="mt-0">
+          {!isLoading && !output && (
             <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
               <Icons.play className="h-12 w-12 mb-4" />
               <p className="font-semibold">Run code to see output</p>
-              <p className="text-sm">Output, errors, and execution details will appear here.</p>
+              <p className="text-sm">Output from a single run will appear here.</p>
             </div>
-          ) : (
+          )}
+          {output && (
             <Card>
               <CardContent className="p-4 text-sm">
                 {output.stderr ? (
                   <div className="space-y-3">
                     <h3 className="font-semibold flex items-center gap-2 text-lg text-destructive">
-                      🔴 Compilation/Error Output
+                      🔴 Error
                     </h3>
-                    <div>
-                      <p className="font-semibold mb-1">💥 Error:</p>
-                      <pre className="font-code bg-destructive/10 text-destructive p-3 rounded-md whitespace-pre-wrap">
-                        {output.stderr}
-                      </pre>
-                    </div>
+                    <pre className="font-code bg-destructive/10 text-destructive p-3 rounded-md whitespace-pre-wrap">
+                      {output.stderr}
+                    </pre>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -97,38 +85,39 @@ const ResultsPanel: React.FC<ResultsPanelProps> = ({
             </Card>
           )}
         </TabsContent>
-        <TabsContent value="test-cases">
-           <div className="space-y-2">
-            {testResults.map(result => (
-              <div key={result.id} className={cn("flex items-center justify-between p-3 rounded-md", result.pass ? "bg-green-500/10" : "bg-red-500/10")}>
-                <div className="flex items-center gap-3">
-                    {result.pass ? <Icons.check className="h-5 w-5 text-green-500" /> : <Icons.close className="h-5 w-5 text-red-500" />}
-                    <span className="font-medium">{result.name}</span>
-                    <Badge variant="outline" className="capitalize">{result.tag}</Badge>
+        <TabsContent value="test-cases" className="mt-0">
+            {!isLoading && !hasTestResults && (
+                 <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
+                    <Icons.chevronRight className="h-12 w-12 mb-4" />
+                    <p className="font-semibold">Submit code to run test cases</p>
+                    <p className="text-sm">Pass/fail results for all test cases will appear here.</p>
                 </div>
-                <div className="text-sm font-medium">
-                    {result.pass ? <span className="text-green-600">Passed</span> : <span className="text-red-600">Failed</span>}
-                </div>
-              </div>
-            ))}
-           </div>
-        </TabsContent>
-        <TabsContent value="quality">
-          <Accordion type="single" collapsible className="w-full">
-            {qualitySuggestions.map((item, index) => (
-              <AccordionItem value={`item-${index}`} key={index}>
-                <AccordionTrigger>
-                  <div className="flex items-center gap-2 text-left">
-                    <Icons.sparkles className="h-4 w-4 text-amber-400 flex-shrink-0" />
-                    <span>{item.suggestion}</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="prose prose-sm max-w-none text-muted-foreground px-2">
-                    {item.rationale}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+            )}
+           {hasTestResults && (
+            <div className="space-y-2">
+                {testResults.map(result => (
+                <Card key={result.id} className={cn(result.pass ? "bg-green-500/5 border-green-500/20" : "bg-red-500/5 border-red-500/20")}>
+                    <div className="flex items-center justify-between p-3">
+                        <div className="flex items-center gap-3">
+                            {result.pass ? <Icons.check className="h-5 w-5 text-green-500" /> : <Icons.close className="h-5 w-5 text-red-500" />}
+                            <span className="font-medium">{result.name}</span>
+                            {result.hidden && <Badge variant="outline">Hidden</Badge>}
+                        </div>
+                        <div className="text-sm font-medium">
+                            {result.pass ? <span className="text-green-600">Passed</span> : <span className="text-red-600">Failed</span>}
+                        </div>
+                    </div>
+                    {!result.pass && (
+                        <div className="border-t border-red-500/20 px-3 py-2 text-xs font-mono bg-red-500/5">
+                            <p><span className="font-sans font-semibold">Input:    </span>{result.input}</p>
+                            <p><span className="font-sans font-semibold">Expected: </span>{result.expectedOutput}</p>
+                            <p><span className="font-sans font-semibold">Got:      </span>{result.actualOutput}</p>
+                        </div>
+                    )}
+                </Card>
+                ))}
+            </div>
+           )}
         </TabsContent>
       </div>
     </Tabs>
