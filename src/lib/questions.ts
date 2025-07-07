@@ -53,17 +53,15 @@ You can return the answer in any order.
       python: `def two_sum(nums, target):
   # Your code here
   pass`,
-      cpp: `vector<int> twoSum(vector<int>& nums, int target) {
+      cpp: `std::vector<int> twoSum(std::vector<int>& nums, int target) {
   // Your code here
 }`,
     },
     driverCode: {
-        javascript: `
-function twoSum(nums, target) {
-{{{code}}}
-}
-const result = twoSum({{{input}}});
-console.log(JSON.stringify(result));`,
+        javascript: `{{{code}}}
+const [nums, target] = {{{input}}};
+const result = twoSum(nums, target);
+console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `
 import sys
 import json
@@ -74,20 +72,50 @@ def two_sum(nums, target):
 raw_input = json.loads("""{{{input}}}""")
 nums, target = raw_input
 result = two_sum(nums, target)
+result.sort()
 print(json.dumps(result))`,
         cpp: `#include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 {{{code}}}
 
-// Dummy main to wrap user code, this will be more complex in a real scenario
+void printVector(const std::vector<int>& vec) {
+    std::cout << "[";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i];
+        if (i < vec.size() - 1) {
+            std::cout << ",";
+        }
+    }
+    std::cout << "]";
+}
+
 int main() {
-    // This part is tricky to generalize for C++ without a proper test harness.
-    // We'll simulate it for now. This driver assumes a very specific input format.
-    // For a real platform, this would be handled by a dedicated backend service.
-    std::cout << "C++ execution harness not implemented in this prototype." << std::endl;
+    std::string line = "{{{input}}}";
+    // This is a simplified parser for "[[num,num,...],target]"
+    std::replace(line.begin(), line.end(), ',', ' ');
+    std::replace(line.begin(), line.end(), '[', ' ');
+    std::replace(line.begin(), line.end(), ']', ' ');
+    
+    std::stringstream ss(line);
+    
+    std::vector<int> all_numbers;
+    int num;
+    while(ss >> num) {
+        all_numbers.push_back(num);
+    }
+    
+    int target = all_numbers.back();
+    all_numbers.pop_back();
+    std::vector<int> nums = all_numbers;
+
+    std::vector<int> result = twoSum(nums, target);
+    std::sort(result.begin(), result.end());
+    printVector(result);
+    
     return 0;
 }`,
     },
@@ -131,7 +159,7 @@ An input string is valid if:
       python: `def is_valid(s):
   # Your code here
   pass`,
-      cpp: `bool isValid(string s) {
+      cpp: `bool isValid(std::string s) {
   // Your code here
 }`,
     },
@@ -150,13 +178,18 @@ def is_valid(s: str) -> bool:
 result = is_valid(json.loads('{{{input}}}'))
 print(json.dumps(result))`,
         cpp: `#include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
 {{{code}}}
 
 int main() {
-    std::cout << "C++ execution harness not implemented in this prototype." << std::endl;
+    std::string s = {{{input}}};
+    if (isValid(s)) {
+        std::cout << "true";
+    } else {
+        std::cout << "false";
+    }
     return 0;
 }`,
     },

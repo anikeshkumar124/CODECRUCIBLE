@@ -45,7 +45,7 @@ const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
               <SelectContent>
                 <SelectItem value="javascript">JavaScript</SelectItem>
                 <SelectItem value="python">Python</SelectItem>
-                <SelectItem value="cpp" disabled>C++ (WIP)</SelectItem>
+                <SelectItem value="cpp">C++</SelectItem>
               </SelectContent>
             </Select>
           </div>
