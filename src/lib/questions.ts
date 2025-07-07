@@ -54,10 +54,19 @@ You can return the answer in any order.
   # Your code here
   pass`,
       cpp: `#include <vector>
+#include <unordered_map>
 
 std::vector<int> twoSum(std::vector<int>& nums, int target) {
-  // Your code here
-}`,
+  std::unordered_map<int, int> num_map;
+  for (int i = 0; i < nums.size(); ++i) {
+    int complement = target - nums[i];
+    if (num_map.count(complement)) {
+      return {num_map[complement], i};
+    }
+    num_map[nums[i]] = i;
+  }
+  return {}; // Should not be reached given problem constraints
+};`,
     },
     driverCode: {
         javascript: `{{{code}}}
@@ -81,6 +90,10 @@ print(json.dumps(result))`,
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <stdexcept>
+
+// Forward declaration of the user's function
+std::vector<int> twoSum(std::vector<int>& nums, int target);
 
 {{{code}}}
 
@@ -93,6 +106,37 @@ void printVector(const std::vector<int>& vec) {
         }
     }
     std::cout << "]";
+}
+
+// Validation function
+void validateAndPrint(const std::vector<int>& nums, int target, const std::vector<int>& result) {
+    if (result.size() != 2) {
+        std::cout << "FAIL: Expected a vector with 2 indices, but got " << result.size() << ".";
+        return;
+    }
+
+    int i1 = result[0];
+    int i2 = result[1];
+
+    if (i1 == i2) {
+        std::cout << "FAIL: Indices must be distinct, but got two of the same: " << i1 << ".";
+        return;
+    }
+    
+    if (i1 < 0 || i1 >= nums.size() || i2 < 0 || i2 >= nums.size()) {
+        std::cout << "FAIL: Indices are out of bounds. Got " << i1 << " and " << i2 << ", but array size is " << nums.size() << ".";
+        return;
+    }
+    
+    if (nums[i1] + nums[i2] != target) {
+        std::cout << "FAIL: The sum of elements at indices " << i1 << " and " << i2 << " (" << nums[i1] << " + " << nums[i2] << " = " << nums[i1] + nums[i2] << ") does not equal the target (" << target << ").";
+        return;
+    }
+
+    // If all checks pass, print the sorted result
+    std::vector<int> sorted_result = result;
+    std::sort(sorted_result.begin(), sorted_result.end());
+    printVector(sorted_result);
 }
 
 int main() {
@@ -114,13 +158,23 @@ int main() {
         all_numbers.push_back(num);
     }
     
+    if (all_numbers.empty()) {
+        std::cerr << "Error: Input is empty or invalid.";
+        return 1;
+    }
+
     int target = all_numbers.back();
     all_numbers.pop_back();
     std::vector<int> nums = all_numbers;
-
-    std::vector<int> result = twoSum(nums, target);
-    std::sort(result.begin(), result.end());
-    printVector(result);
+    
+    try {
+        std::vector<int> result = twoSum(nums, target);
+        validateAndPrint(nums, target, result);
+    } catch (const std::exception& e) {
+        std::cout << "FAIL: An exception occurred during execution: " << e.what();
+    } catch (...) {
+        std::cout << "FAIL: An unknown exception occurred during execution.";
+    }
     
     return 0;
 }`,
