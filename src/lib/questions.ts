@@ -53,23 +53,24 @@ You can return the answer in any order.
       python: `def two_sum(nums, target):
   # Your code here
   pass`,
-      cpp: `std::vector<int> twoSum(std::vector<int>& nums, int target) {
+      cpp: `#include <vector>
+
+std::vector<int> twoSum(std::vector<int>& nums, int target) {
   // Your code here
 }`,
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = {{{input}}};
+const [nums, target] = JSON.parse({{{input}}});
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `
 import sys
 import json
 
-def two_sum(nums, target):
 {{{code}}}
 
-raw_input = json.loads("""{{{input}}}""")
+raw_input = json.loads({{{input}}})
 nums, target = raw_input
 result = two_sum(nums, target)
 result.sort()
@@ -79,6 +80,7 @@ print(json.dumps(result))`,
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <iterator>
 
 {{{code}}}
 
@@ -94,13 +96,17 @@ void printVector(const std::vector<int>& vec) {
 }
 
 int main() {
-    std::string line = "{{{input}}}";
+    std::string line = {{{input}}};
     // This is a simplified parser for "[[num,num,...],target]"
-    std::replace(line.begin(), line.end(), ',', ' ');
-    std::replace(line.begin(), line.end(), '[', ' ');
-    std::replace(line.begin(), line.end(), ']', ' ');
+    std::string clean_line;
+    for (char c : line) {
+        if (c != '[' && c != ']') {
+            clean_line += c;
+        }
+    }
+    std::replace(clean_line.begin(), clean_line.end(), ',', ' ');
     
-    std::stringstream ss(line);
+    std::stringstream ss(clean_line);
     
     std::vector<int> all_numbers;
     int num;
@@ -123,7 +129,7 @@ int main() {
         { id: 1, name: 'Sample Case 1', input: '[[2,7,11,15], 9]', expectedOutput: '[0,1]', hidden: false },
         { id: 2, name: 'Sample Case 2', input: '[[3,2,4], 6]', expectedOutput: '[1,2]', hidden: false },
         { id: 3, name: 'Edge Case with Negatives', input: '[[-1,-2,-3,-4,-5], -8]', expectedOutput: '[2,4]', hidden: true },
-        { id: 4, name: 'Large Numbers', input: '[[1000000000, 2, 7, 100], 1000000007]', expectedOutput: '[0,3]', hidden: true},
+        { id: 4, name: 'Large Numbers', input: '[[1000000000, 2, 7, 100], 1000000007]', expectedOutput: '[0,2]', hidden: true},
         { id: 5, name: 'Zeroes', input: '[[0,4,3,0], 0]', expectedOutput: '[0,3]', hidden: true },
     ]
   },
@@ -159,27 +165,27 @@ An input string is valid if:
       python: `def is_valid(s):
   # Your code here
   pass`,
-      cpp: `bool isValid(std::string s) {
+      cpp: `#include <string>
+#include <stack>
+
+bool isValid(std::string s) {
   // Your code here
 }`,
     },
     driverCode: {
-        javascript: `
-function isValid(s) {
-{{{code}}}
-}
+        javascript: `{{{code}}}
 const result = isValid({{{input}}});
 console.log(JSON.stringify(result));`,
         python: `
 import json
-def is_valid(s: str) -> bool:
 {{{code}}}
 
-result = is_valid(json.loads('{{{input}}}'))
-print(json.dumps(result))`,
+result = is_valid(json.loads({{{input}}}))
+print(str(result).lower())`,
         cpp: `#include <iostream>
 #include <string>
 #include <vector>
+#include <stack>
 
 {{{code}}}
 
