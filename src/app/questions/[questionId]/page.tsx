@@ -9,7 +9,7 @@ import ProblemDescriptionPanel from '@/components/ProblemDescriptionPanel';
 import { useToast } from '@/hooks/use-toast';
 import { questions, type Language, type Question, type TestCase } from '@/lib/questions';
 import { notFound } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -28,7 +28,7 @@ export type TestCaseResult = TestCase & {
 export default function QuestionPage({ params }: { params: { questionId: string } }) {
   const [isMounted, setIsMounted] = useState(false);
   
-  const question = useMemo(() => questions.find(q => q.id === params.questionId), [params.questionId]);
+  const question = questions.find(q => q.id === params.questionId);
   
   const [code, setCode] = useState<string>('');
   const [language, setLanguage] = useState<Language>('javascript');
@@ -222,4 +222,3 @@ export default function QuestionPage({ params }: { params: { questionId: string 
     </div>
   );
 }
-
