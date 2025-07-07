@@ -70,7 +70,7 @@ std::vector<int> twoSum(std::vector<int>& nums, int target) {
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = JSON.parse({{{input}}});
+const [nums, target] = JSON.parse('{{{input}}}');
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `
@@ -79,7 +79,7 @@ import json
 
 {{{code}}}
 
-raw_input = json.loads({{{input}}})
+raw_input = json.loads('{{{input}}}')
 nums, target = raw_input
 result = two_sum(nums, target)
 result.sort()
@@ -234,7 +234,7 @@ console.log(JSON.stringify(result));`,
 import json
 {{{code}}}
 
-result = is_valid(json.loads({{{input}}}))
+result = is_valid(json.loads('{{{input}}}'))
 print(str(result).lower())`,
         cpp: `#include <iostream>
 #include <string>
