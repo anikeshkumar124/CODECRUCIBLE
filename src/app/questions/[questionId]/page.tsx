@@ -4,34 +4,17 @@
 import { codeQualityCheck } from '@/ai/flows/code-quality-check';
 import { executeCode } from '@/ai/flows/execute-code-flow';
 import CodeEditorPanel from '@/components/code-crucible/CodeEditorPanel';
-import QualityReportPanel from '@/components/code-crucible/QualityReportPanel';
 import ResultsPanel from '@/components/code-crucible/ResultsPanel';
 import { Icons } from '@/components/icons';
 import ProblemDescriptionPanel from '@/components/ProblemDescriptionPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { questions, type Language, type Question, type TestCase } from '@/lib/questions';
+import { questions, type Language, type Question } from '@/lib/questions';
+import type { ExecutionOutput, QualitySuggestion, TestCaseResult } from '@/lib/types';
 import { debounce } from '@/lib/utils';
 import { notFound, useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
-export type ExecutionOutput = {
-  input?: string;
-  stdout: string;
-  stderr: string;
-  time: string;
-};
-
-export type TestCaseResult = TestCase & {
-  pass: boolean;
-  actualOutput: string;
-};
-
-export type QualitySuggestion = {
-  suggestion: string;
-  rationale: string;
-};
 
 export default function QuestionPage() {
   const params = useParams<{ questionId: string }>();
@@ -113,26 +96,31 @@ export default function QuestionPage() {
         displayInput = question.testCases[0].input;
       } else {
         displayInput = customInput;
-        if (question.id === 'valid-parentheses') {
-          inputForDriver = JSON.stringify(customInput);
-        } else if (question.id === 'two-sum') {
-          inputForDriver = `[${customInput}]`;
-        } else {
-          inputForDriver = customInput;
-        }
+        inputForDriver = JSON.stringify(customInput);
       }
 
       let fullCode: string;
       if (language === 'cpp' && question.id === 'two-sum') {
-        const parsedInput = JSON.parse(inputForDriver);
-        const nums = parsedInput[0];
-        const target = parsedInput[1];
-        const nums_vector = `{${nums.join(', ')}}`;
-        const target_value = `${target}`;
-        fullCode = question.driverCode[language]
-          .replace('{{{code}}}', code)
-          .replace('{{{nums_vector}}}', nums_vector)
-          .replace('{{{target_value}}}', target_value);
+        try {
+            const parsedInput = JSON.parse(displayInput);
+            const nums = parsedInput[0];
+            const target = parsedInput[1];
+            const nums_vector = `{${nums.join(', ')}}`;
+            const target_value = `${target}`;
+            fullCode = question.driverCode[language]
+              .replace('{{{code}}}', code)
+              .replace('{{{nums_vector}}}', nums_vector)
+              .replace('{{{target_value}}}', target_value);
+        } catch(e) {
+            setOutput({
+                input: customInput,
+                stdout: '',
+                stderr: 'Invalid custom input for Two Sum. Expected format: [[1,2,3], 5]',
+                time: '0s',
+              });
+            setIsLoadingRun(false);
+            return;
+        }
       } else {
         fullCode = question.driverCode[language]
           .replace('{{{code}}}', code)
