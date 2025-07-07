@@ -55,22 +55,29 @@ You can return the answer in any order.
   pass`,
       cpp: `#include <vector>
 #include <unordered_map>
+#include <stdexcept>
 
 std::vector<int> twoSum(std::vector<int>& nums, int target) {
   std::unordered_map<int, int> num_map;
   for (int i = 0; i < nums.size(); ++i) {
     int complement = target - nums[i];
-    if (num_map.count(complement)) {
-      return {num_map[complement], i};
+    auto it = num_map.find(complement);
+    if (it != num_map.end()) {
+      // Found the complement, return its index and the current index.
+      return {it->second, i};
     }
+    // Add the current number and its index to the map.
+    // This happens after the check to prevent matching an element with itself.
     num_map[nums[i]] = i;
   }
-  return {}; // Should not be reached given problem constraints
+  // According to the problem, a solution always exists.
+  // Throwing an exception is a robust way to handle an unexpected case.
+  throw std::runtime_error("No solution found");
 };`,
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = JSON.parse('{{{input}}}');
+const [nums, target] = JSON.parse({{{input}}});
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `
@@ -79,7 +86,7 @@ import json
 
 {{{code}}}
 
-raw_input = json.loads('{{{input}}}')
+raw_input = json.loads({{{input}}})
 nums, target = raw_input
 result = two_sum(nums, target)
 result.sort()
