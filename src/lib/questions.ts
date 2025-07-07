@@ -96,7 +96,7 @@ void printVector(const std::vector<int>& vec) {
 }
 
 int main() {
-    std::string line = {{{input}}};
+    std::string line = R"({{{input}}})";
     // This is a simplified parser for "[[num,num,...],target]"
     std::string clean_line;
     for (char c : line) {
