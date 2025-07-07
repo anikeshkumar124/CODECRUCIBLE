@@ -99,19 +99,33 @@ export default function QuestionPage() {
       if (useDefaultInput) {
         inputForDriver = question.testCases[0].input;
       } else {
-        // For problems expecting a string literal, we need to format it correctly.
         if (question.id === 'valid-parentheses') {
-            // User types (), but driver needs "()". JSON.stringify handles this.
             inputForDriver = JSON.stringify(customInput);
+        } else if (question.id === 'two-sum') {
+            // Wrap custom input to form a valid JSON array: e.g., '[2,7],9' -> '[[2,7],9]'
+            inputForDriver = `[${customInput}]`;
         } else {
-            // For 'two-sum', driver wraps input in quotes, so we pass raw value.
             inputForDriver = customInput;
         }
       }
 
-      const fullCode = question.driverCode[language]
-        .replace('{{{code}}}', code)
-        .replace('{{{input}}}', inputForDriver);
+      let fullCode: string;
+
+      if (language === 'cpp' && question.id === 'two-sum') {
+        const parsedInput = JSON.parse(inputForDriver);
+        const nums = parsedInput[0];
+        const target = parsedInput[1];
+        const nums_vector = `{${nums.join(', ')}}`;
+        const target_value = `${target}`;
+        fullCode = question.driverCode[language]
+          .replace('{{{code}}}', code)
+          .replace('{{{nums_vector}}}', nums_vector)
+          .replace('{{{target_value}}}', target_value);
+      } else {
+        fullCode = question.driverCode[language]
+          .replace('{{{code}}}', code)
+          .replace('{{{input}}}', inputForDriver);
+      }
 
       const result = await executeCode({
         code: fullCode,
@@ -146,9 +160,23 @@ export default function QuestionPage() {
     try {
       const results: TestCaseResult[] = [];
       for (const tc of question.testCases) {
-        const fullCode = question.driverCode[language]
+        let fullCode: string;
+
+        if (language === 'cpp' && question.id === 'two-sum') {
+          const parsedInput = JSON.parse(tc.input);
+          const nums = parsedInput[0];
+          const target = parsedInput[1];
+          const nums_vector = `{${nums.join(', ')}}`;
+          const target_value = `${target}`;
+          fullCode = question.driverCode[language]
+            .replace('{{{code}}}', code)
+            .replace('{{{nums_vector}}}', nums_vector)
+            .replace('{{{target_value}}}', target_value);
+        } else {
+          fullCode = question.driverCode[language]
             .replace('{{{code}}}', code)
             .replace('{{{input}}}', tc.input);
+        }
 
         const result = await executeCode({
           code: fullCode,

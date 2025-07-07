@@ -69,9 +69,8 @@ public:
         std::unordered_map<int, int> num_map;
         for (int i = 0; i < nums.size(); ++i) {
             int complement = target - nums[i];
-            auto it = num_map.find(complement);
-            if (it != num_map.end()) {
-                return {it->second, i};
+            if (num_map.count(complement)) {
+                return {num_map[complement], i};
             }
             num_map[nums[i]] = i;
         }
@@ -81,7 +80,7 @@ public:
     },
     driverCode: {
         javascript: `{{{code}}}
-const [nums, target] = {{{input}}};
+const [nums, target] = JSON.parse({{{input}}});
 const result = twoSum(nums, target);
 console.log(JSON.stringify(result.sort((a, b) => a - b)));`,
         python: `import sys
@@ -91,14 +90,13 @@ from typing import List
 {{{code}}}
 
 s = Solution()
-nums, target = {{{input}}}
+nums, target = json.loads({{{input}}})
 result = s.twoSum(nums, target)
 result.sort()
 print(json.dumps(result))`,
         cpp: `#include <iostream>
 #include <vector>
 #include <string>
-#include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <unordered_map>
@@ -117,32 +115,8 @@ void printVector(const std::vector<int>& vec) {
 }
 
 int main() {
-    std::string line = R"({{{input}}})";
-    // This is a simplified parser for "[[num,num,...],target]"
-    std::string clean_line;
-    for (char c : line) {
-        if (c != '[' && c != ']') {
-            clean_line += c;
-        }
-    }
-    std::replace(clean_line.begin(), clean_line.end(), ',', ' ');
-    
-    std::stringstream ss(clean_line);
-    
-    std::vector<int> all_numbers;
-    int num;
-    while(ss >> num) {
-        all_numbers.push_back(num);
-    }
-    
-    if (all_numbers.empty()) {
-        printVector({});
-        return 0;
-    }
-
-    int target = all_numbers.back();
-    all_numbers.pop_back();
-    std::vector<int> nums = all_numbers;
+    std::vector<int> nums = {{{nums_vector}}};
+    int target = {{{target_value}}};
     
     Solution s;
     std::vector<int> result = s.twoSum(nums, target);
