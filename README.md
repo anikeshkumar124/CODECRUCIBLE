@@ -19,3 +19,4 @@ Welcome to Code Crucible, a modern online coding environment designed to help yo
     *   Click **Run** (or `Ctrl+Enter`) to test your code with a custom input or the default sample case.
     *   Click **Submit** (or `Ctrl+Shift+Enter`) to validate your solution against all test cases.
 4.  **Review Results**: View the execution output, test case results, and AI quality report in the tabs on the right.
+# CODECRUCIBLE
